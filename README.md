@@ -37,7 +37,7 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 | Challenge | Description |
 |-----------|-------------|
 | 📉 **Limited Training Data** | Only 240 training graphs (40 per class) - learn from less! |
-| ⚖️ **Imbalanced Validation** | Validation set has imbalanced classes (60-40-30-20-20-10) |
+| ⚖️ **Imbalanced Validation** | Validation set has imbalanced classes (45-40-35-25-20-15) |
 | ❓ **Missing Features** | 10-15% of node features are missing (NaN values) |
 | 🔗 **Edge Dropout** | 10% of edges hidden in test graphs |
 | 🏋️ **Model Constraints** | Maximum 100K parameters, train in <5 min on CPU |
@@ -49,8 +49,8 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 | Split | Graphs | Class Distribution | Notes |
 |-------|--------|-------------------|-------|
 | Train | 240 | Balanced (40/class) | Complete features |
-| Validation | 180 | Imbalanced (60-40-30-20-20-10) | Missing features |
-| Test | 180 | Balanced (30/class) | Missing features + Edge dropout |
+| Validation | 180 | Imbalanced (45-40-35-25-20-15) | Missing features |
+| Test | 180 | Imbalanced (15-20-25-35-40-45) | Missing features + Edge dropout |
 
 ### Graph Properties
 - **Nodes per graph**: 2-126 (avg: ~32)

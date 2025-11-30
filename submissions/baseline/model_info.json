@@ -1,0 +1,18 @@
+{
+  "model": "SimpleGNN (GIN)",
+  "parameters": 29350,
+  "training_time_seconds": 5.044839143753052,
+  "best_epoch": 42,
+  "val_macro_f1": 0.2900714233091591,
+  "val_accuracy": 0.3111111111111111,
+  "hyperparameters": {
+    "hidden_dim": 64,
+    "num_layers": 3,
+    "dropout": 0.5,
+    "learning_rate": 0.01,
+    "weight_decay": 0.0001,
+    "batch_size": 32,
+    "epochs": 50,
+    "seed": 42
+  }
+}
