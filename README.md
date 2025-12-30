@@ -62,88 +62,37 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 
 ## 🚀 Getting Started
 
-### Option 1: Using Docker (Recommended)
-
-#### Prerequisites
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-#### Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/khadidja2005/GNN_challenge.git
-cd GNN_challenge
-
-# Start all services (Web UI + Python environment)
-docker-compose up --build
-
-# Access the Web UI at http://localhost:3000
-```
-
-#### Run GNN Scripts with Docker
-
-```bash
-# Prepare challenge data
-docker-compose run gnn python scripts/prepare_data.py
-
-# Train the baseline model
-docker-compose run gnn python baselines/simple_gnn.py
-
-# Evaluate your predictions
-docker-compose run gnn python scripts/evaluate.py --predictions submissions/predictions.csv
-
-# Interactive Python shell
-docker-compose run gnn bash
-```
-
-#### Development Mode (with hot reload)
-
-```bash
-docker-compose --profile dev up web-dev
-# Access at http://localhost:3001
-```
-
-### Option 2: Local Installation
-
-#### 1. Clone the Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/khadidja2005/GNN_challenge.git
 cd GNN_challenge
 ```
 
-#### 2. Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-#### 3. Prepare the Challenge Data
+### 3. Prepare the Challenge Data
 
 ```bash
 python scripts/prepare_data.py
 ```
 
-#### 4. Explore the Starter Notebook
+This will create the challenge splits in `data/challenge/`.
+
+### 4. Explore the Starter Notebook
 
 ```bash
 jupyter notebook notebooks/getting_started.ipynb
 ```
 
-#### 5. Run the Baseline
+### 5. Run the Baseline
 
 ```bash
 python baselines/simple_gnn.py
-```
-
-#### 6. Run the Web UI (Optional)
-
-```bash
-cd web
-npm install
-npm run dev
-# Access at http://localhost:3000
 ```
 
 ---
@@ -154,10 +103,7 @@ npm run dev
 GNN_challenge/
 ├── README.md                    # This file
 ├── RULES.md                     # Detailed challenge rules
-├── DOCKER.md                    # Docker deployment guide
 ├── requirements.txt             # Python dependencies
-├── docker-compose.yml           # Docker orchestration
-├── Dockerfile.python            # Python GNN environment
 ├── Dataset/
 │   └── ENZYMES/                 # Original TUDataset files
 ├── data/
@@ -176,10 +122,6 @@ GNN_challenge/
 ├── submissions/
 │   ├── template.py              # Submission template
 │   └── example_submission.csv   # Example submission format
-├── web/                         # Next.js Web UI
-│   ├── Dockerfile               # Production web build
-│   ├── Dockerfile.dev           # Development build
-│   └── src/                     # React components
 └── .github/
     └── workflows/
         └── evaluate.yml         # Automated evaluation
@@ -228,10 +170,6 @@ $$\text{Accuracy} = \frac{\text{Correct Predictions}}{\text{Total Predictions}}$
 ### Evaluate Your Predictions
 
 ```bash
-# Using Docker (recommended)
-docker-compose run gnn python scripts/evaluate.py --predictions submissions/your_predictions.csv
-
-# Or locally
 python scripts/evaluate.py --predictions submissions/your_predictions.csv
 ```
 
