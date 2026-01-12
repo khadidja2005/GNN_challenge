@@ -100,9 +100,11 @@ PY
 
       - name: Evaluate on validation split
         run: |
+          GT="${{ inputs.ground_truth || '' }}"
+          if [ -z "$GT" ]; then GT="val"; fi
           python scripts/evaluate.py \
             --predictions "${{ steps.find_predictions.outputs.predictions_file }}" \
-            --ground_truth "${{ github.event.inputs.ground_truth != '' && github.event.inputs.ground_truth || 'val' }}" \
+            --ground_truth "$GT" \
             --detailed
 
       - name: Collect metrics
