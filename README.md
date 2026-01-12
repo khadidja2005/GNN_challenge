@@ -74,7 +74,7 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 ### 🌐 Web App Quick Notes
 - Landing page redirects to the leaderboard; nav links: Leaderboard, Docs, Submit.
 - Submit tab summarizes the PR-based submission flow (see "How to Submit").
-- Production build: `npm run build && npm run export` (outputs to `out/` for static hosting).
+- Production build: `npm run build` (outputs static files to `out/`).
 - GitHub Pages: https://khadidja2005.github.io/GNN_challenge/
 
 ---
