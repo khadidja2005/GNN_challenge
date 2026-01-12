@@ -65,6 +65,7 @@ jobs:
         run: |
           python - <<'PY'
 import json
+import os
 from pathlib import Path
 
 results_path = Path("${{ inputs.submission_path }}") / "evaluation_results.json"
@@ -72,11 +73,12 @@ if not results_path.exists():
     raise SystemExit(f"results file not found: {results_path}")
 
 data = json.loads(results_path.read_text())
-with open(Path("${GITHUB_OUTPUT}"), 'a', encoding='utf-8') as fh:
-  fh.write(f"macro_f1={data['macro_f1']}\n")
-  fh.write(f"accuracy={data['accuracy']}\n")
-  fh.write(f"weighted_f1={data['weighted_f1']}\n")
-  fh.write(f"results_path={results_path}\n")
+gh_out = Path(os.environ["GITHUB_OUTPUT"])
+with gh_out.open('a', encoding='utf-8') as fh:
+    fh.write(f"macro_f1={data['macro_f1']}\n")
+    fh.write(f"accuracy={data['accuracy']}\n")
+    fh.write(f"weighted_f1={data['weighted_f1']}\n")
+    fh.write(f"results_path={results_path}\n")
 PY
 
       - name: Update leaderboard data
