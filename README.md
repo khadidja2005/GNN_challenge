@@ -13,72 +13,13 @@
 
 ---
 
-## 📋 Challenge Overview
-
-Welcome to **ENZYMES-Hard**, a challenging Graph Neural Network competition designed to push your GNN skills to the limit! Your goal is to classify protein structures into their enzyme functional classes under realistic, difficult conditions.
-
-### 🩺 Why this matters (biomed/health)
-- Enzyme function prediction supports drug discovery by highlighting targets and off-target risks.
-- Better generalization under missing data mirrors real-world biomolecular assays and noisy lab pipelines.
-- Robust GNNs on protein graphs can accelerate annotation of novel enzymes in metagenomics and synthetic biology.
-
-### 🎯 The Task
-
-Classify protein tertiary structures (represented as graphs) into one of **6 EC top-level enzyme classes**:
-
-| Class | Description |
-|-------|-------------|
-| 1 | Oxidoreductases |
-| 2 | Transferases |
-| 3 | Hydrolases |
-| 4 | Lyases |
-| 5 | Isomerases |
-| 6 | Ligases |
-
-### 🔥 What Makes This Hard?
-
-This isn't your typical ENZYMES benchmark. We've added several real-world challenges:
-
-| Challenge | Description |
-|-----------|-------------|
-| 📉 **Limited Training Data** | Only 240 training graphs (40 per class) - learn from less! |
-| ⚖️ **Imbalanced Validation** | Validation set has imbalanced classes (45-40-35-25-20-15) |
-| ❓ **Missing Features** | 10-15% of node features are missing (NaN values) |
-| 🔗 **Edge Dropout** | 10% of edges hidden in test graphs |
-| 🏋️ **Model Constraints** | Maximum 100K parameters, train in <5 min on CPU |
-
----
-
-## 📊 Dataset Statistics
-
-| Split | Graphs | Class Distribution | Notes |
-|-------|--------|-------------------|-------|
-| Validation | 180 | Imbalanced (45-40-35-25-20-15) | Missing features |
-| Test | 180 | Imbalanced (15-20-25-35-40-45) | Missing features + Edge dropout |
- - Web app lands on the leaderboard by default; navbar brand also points there.
- - Submit page now guides you to open a Pull Request (no file uploads in the UI).
- - Static web build exports via `next export` and deploys to GitHub Pages through Actions.
- - Added ready-to-use GAT/GCN/GraphSAGE submission scripts under `submissions/`.
-# 🧬 ENZYMES-Hard: Few-Shot Protein Function Classification
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Task-Graph%20Classification-blue" alt="Task">
-  <img src="https://img.shields.io/badge/Dataset-ENZYMES-green" alt="Dataset">
-  <img src="https://img.shields.io/badge/Difficulty-Hard-red" alt="Difficulty">
-  <img src="https://img.shields.io/badge/Framework-PyTorch%20Geometric-orange" alt="Framework">
-</p>
-
-<p align="center">
-  <b>An Educational GNN Challenge for Robust Protein Function Prediction</b>
-</p>
-
----
-
 ## ✨ What's New
 - Web app lands on the leaderboard by default; navbar brand also points there.
 - Submit page now guides you to open a Pull Request (no file uploads in the UI).
 - Static web build exports via `next export` and deploys to GitHub Pages through Actions.
 - Added ready-to-use GAT/GCN/GraphSAGE submission scripts under `submissions/`.
+- GitHub Actions: PR validation via `evaluate.yml` and `update-leaderboard.yml` dispatcher to publish scores.
+- GitHub Actions: PR validation via `evaluate.yml` and a `update-leaderboard.yml` dispatcher to publish scores to the site.
 
 ## 📋 Challenge Overview
 
@@ -134,6 +75,7 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 - Landing page redirects to the leaderboard; nav links: Leaderboard, Docs, Submit.
 - Submit tab summarizes the PR-based submission flow (see "How to Submit").
 - Production build: `npm run build && npm run export` (outputs to `out/` for static hosting).
+- GitHub Pages: https://khadidja2005.github.io/GNN_challenge/
 
 ---
 
@@ -329,10 +271,10 @@ python scripts/evaluate.py --predictions submissions/your_predictions.csv
 | Rank | Team | Macro F1 | Accuracy | Parameters | Training Time |
 |------|------|----------|----------|------------|---------------|
 | 🥇 | - | - | - | - | - |
+| 🥇 | - | - | - | - | - |
 | 🥈 | - | - | - | - | - |
 | 🥉 | - | - | - | - | - |
 | 📊 | Baseline | ~0.35 | ~0.38 | 45K | ~2 min |
-
 ---
 
 ## 📜 Rules Summary

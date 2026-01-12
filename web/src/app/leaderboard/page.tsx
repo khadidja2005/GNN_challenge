@@ -1,6 +1,7 @@
 'use client';
 
 import { Trophy, Medal, TrendingUp, Clock, User, Cpu } from 'lucide-react';
+import leaderboardData from './data.json';
 
 interface LeaderboardEntry {
   rank: number;
@@ -13,55 +14,7 @@ interface LeaderboardEntry {
   isBaseline?: boolean;
 }
 
-const leaderboardData: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    name: 'GraphSAGE Submission',
-    macroF1: 0.420,
-    accuracy: 0.470,
-    params: '~70,000',
-    trainTime: '~3m 10s',
-    submittedAt: 'Official',
-  },
-  {
-    rank: 2,
-    name: 'GAT Submission',
-    macroF1: 0.400,
-    accuracy: 0.450,
-    params: '~85,000',
-    trainTime: '~3m 40s',
-    submittedAt: 'Official',
-  },
-  {
-    rank: 3,
-    name: 'GCN Submission',
-    macroF1: 0.380,
-    accuracy: 0.430,
-    params: '~65,000',
-    trainTime: '~3m 00s',
-    submittedAt: 'Official',
-  },
-  {
-    rank: 4,
-    name: 'GIN Baseline',
-    macroF1: 0.290,
-    accuracy: 0.322,
-    params: '29,350',
-    trainTime: '5s',
-    submittedAt: 'Official',
-    isBaseline: true,
-  },
-  {
-    rank: 5,
-    name: 'RandomGuess',
-    macroF1: 0.167,
-    accuracy: 0.167,
-    params: '0',
-    trainTime: '0s',
-    submittedAt: 'Official',
-    isBaseline: true,
-  },
-];
+const leaderboardEntries = leaderboardData as LeaderboardEntry[];
 
 function getRankIcon(rank: number) {
   switch (rank) {
@@ -90,8 +43,9 @@ function getRowStyle(entry: LeaderboardEntry) {
 }
 
 export default function LeaderboardPage() {
-  const topScore = leaderboardData[0]?.macroF1 || 1;
-  const baselineScore = 0.29;
+  const topScore = leaderboardEntries.reduce((max, entry) => Math.max(max, entry.macroF1), 0) || 1;
+  const baselineScore =
+    leaderboardEntries.find((entry) => entry.isBaseline)?.macroF1 ?? 0.29;
 
   return (
     <div className="min-h-screen py-12 px-4">
@@ -117,7 +71,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="p-4 bg-gradient-to-br from-purple-900/30 to-purple-900/10 border border-purple-800/30 rounded-xl text-center">
             <User className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-            <div className="text-2xl font-bold text-purple-400">{leaderboardData.filter(e => !e.isBaseline).length}</div>
+            <div className="text-2xl font-bold text-purple-400">{leaderboardEntries.filter(e => !e.isBaseline).length}</div>
             <div className="text-xs text-gray-500">Participants</div>
           </div>
           <div className="p-4 bg-gradient-to-br from-emerald-900/30 to-emerald-900/10 border border-emerald-800/30 rounded-xl text-center">
@@ -147,7 +101,7 @@ export default function LeaderboardPage() {
           </div>
 
           {/* Rows */}
-          {leaderboardData.map((entry, idx) => (
+          {leaderboardEntries.map((entry, idx) => (
             <div
               key={idx}
               className={`grid grid-cols-12 gap-4 p-4 border-b last:border-b-0 items-center transition-colors hover:bg-gray-800/30 ${getRowStyle(entry)}`}

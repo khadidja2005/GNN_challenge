@@ -1,0 +1,49 @@
+[
+  {
+    "rank": 1,
+    "name": "GraphSAGE Submission",
+    "macroF1": 0.42,
+    "accuracy": 0.47,
+    "params": "~70,000",
+    "trainTime": "~3m 10s",
+    "submittedAt": "Official"
+  },
+  {
+    "rank": 2,
+    "name": "GAT Submission",
+    "macroF1": 0.4,
+    "accuracy": 0.45,
+    "params": "~85,000",
+    "trainTime": "~3m 40s",
+    "submittedAt": "Official"
+  },
+  {
+    "rank": 3,
+    "name": "GCN Submission",
+    "macroF1": 0.38,
+    "accuracy": 0.43,
+    "params": "~65,000",
+    "trainTime": "~3m 00s",
+    "submittedAt": "Official"
+  },
+  {
+    "rank": 4,
+    "name": "GIN Baseline",
+    "macroF1": 0.29,
+    "accuracy": 0.322,
+    "params": "29,350",
+    "trainTime": "5s",
+    "submittedAt": "Official",
+    "isBaseline": true
+  },
+  {
+    "rank": 5,
+    "name": "RandomGuess",
+    "macroF1": 0.167,
+    "accuracy": 0.167,
+    "params": "0",
+    "trainTime": "0s",
+    "submittedAt": "Official",
+    "isBaseline": true
+  }
+]
