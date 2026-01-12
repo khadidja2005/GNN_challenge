@@ -63,63 +63,25 @@ jobs:
       - name: Extract metrics
         id: metrics
         run: |
-          python - <<'PY'
-import json
-import os
-from pathlib import Path
-
-results_path = Path("${{ inputs.submission_path }}") / "evaluation_results.json"
-if not results_path.exists():
-    raise SystemExit(f"results file not found: {results_path}")
-
-data = json.loads(results_path.read_text())
-gh_out = Path(os.environ["GITHUB_OUTPUT"])
-with gh_out.open('a', encoding='utf-8') as fh:
-    fh.write(f"macro_f1={data['macro_f1']}\n")
-    fh.write(f"accuracy={data['accuracy']}\n")
-    fh.write(f"weighted_f1={data['weighted_f1']}\n")
-    fh.write(f"results_path={results_path}\n")
-PY
+          RESULTS_PATH="${{ inputs.submission_path }}/evaluation_results.json"
+          if [ ! -f "$RESULTS_PATH" ]; then
+            echo "results file not found: $RESULTS_PATH" >&2
+            exit 1
+          fi
+          echo "results_path=$RESULTS_PATH" >> "$GITHUB_OUTPUT"
+          echo "macro_f1=$(jq -r '.macro_f1' "$RESULTS_PATH")" >> "$GITHUB_OUTPUT"
+          echo "accuracy=$(jq -r '.accuracy' "$RESULTS_PATH")" >> "$GITHUB_OUTPUT"
+          echo "weighted_f1=$(jq -r '.weighted_f1' "$RESULTS_PATH")" >> "$GITHUB_OUTPUT"
 
       - name: Update leaderboard data
-        id: update_board
         run: |
-          python - <<'PY'
-import json
-from pathlib import Path
-from datetime import datetime
-
-leaderboard_path = Path('web/src/app/leaderboard/data.json')
-if not leaderboard_path.exists():
-    raise SystemExit('Leaderboard data file missing: ' + str(leaderboard_path))
-
-data = json.loads(leaderboard_path.read_text())
-
-new_entry = {
-    "rank": 0,  # temp; will be reassigned
-    "name": "${{ inputs.team_name }}",
-    "macroF1": float("${{ steps.metrics.outputs.macro_f1 }}"),
-    "accuracy": float("${{ steps.metrics.outputs.accuracy }}"),
-    "params": "${{ inputs.params }}",
-    "trainTime": "${{ inputs.train_time }}",
-    "submittedAt": "${{ inputs.submitted_at }}" or datetime.utcnow().isoformat(),
-}
-if "${{ inputs.is_baseline }}".lower() == 'true':
-    new_entry["isBaseline"] = True
-
-# Replace existing entry with the same name, otherwise append
-filtered = [e for e in data if e.get('name') != new_entry['name']]
-filtered.append(new_entry)
-
-# Sort by Macro F1 desc, then Accuracy desc
-filtered.sort(key=lambda e: (e.get('macroF1', 0), e.get('accuracy', 0)), reverse=True)
-
-# Re-rank
-for idx, entry in enumerate(filtered, start=1):
-    entry['rank'] = idx
-
-leaderboard_path.write_text(json.dumps(filtered, indent=2))
-PY
+          python scripts/update_leaderboard_ci.py \
+            --submission "${{ inputs.submission_path }}" \
+            --team-name "${{ inputs.team_name }}" \
+            --params "${{ inputs.params }}" \
+            --train-time "${{ inputs.train_time }}" \
+            --is-baseline "${{ inputs.is_baseline }}" \
+            --submitted-at "${{ inputs.submitted_at }}"
 
       - name: Show updated leaderboard snippet
         run: |
