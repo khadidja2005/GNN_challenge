@@ -100,7 +100,7 @@ new_entry = {
     "accuracy": float("${{ steps.metrics.outputs.accuracy }}"),
     "params": "${{ inputs.params }}",
     "trainTime": "${{ inputs.train_time }}",
-    "submittedAt": "${{ inputs.submitted_at || '' }}" or datetime.utcnow().isoformat(),
+    "submittedAt": "${{ inputs.submitted_at }}" or datetime.utcnow().isoformat(),
 }
 if "${{ inputs.is_baseline }}".lower() == 'true':
     new_entry["isBaseline"] = True
