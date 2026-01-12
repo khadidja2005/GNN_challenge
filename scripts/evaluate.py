@@ -93,7 +93,8 @@ def load_ground_truth(data_dir: str, split: str) -> Dict[int, int]:
         import torch
         try:
             from torch_geometric.data import Data as _PyGData
-            torch.serialization.add_safe_globals([_PyGData])  # safe for our local artifact
+            from torch_geometric.data import Batch as _PyGBatch
+            torch.serialization.add_safe_globals([_PyGData, _PyGBatch])  # safe for our local artifact
         except Exception:
             pass
         val_data = torch.load(data_dir / 'val.pt', weights_only=False)
