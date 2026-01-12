@@ -89,9 +89,14 @@ def load_ground_truth(data_dir: str, split: str) -> Dict[int, int]:
         return {int(k): int(v) for k, v in labels.items()}
     
     elif split == 'val':
-        # Load from validation data
+        # Load from validation data (allowlist PyG Data in newer torch)
         import torch
-        val_data = torch.load(data_dir / 'val.pt')
+        try:
+            from torch_geometric.data import Data as _PyGData
+            torch.serialization.add_safe_globals([_PyGData])  # safe for our local artifact
+        except Exception:
+            pass
+        val_data = torch.load(data_dir / 'val.pt', weights_only=False)
         return {i: int(data.y.item()) for i, data in enumerate(val_data)}
     
     else:
