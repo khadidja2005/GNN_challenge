@@ -45,5 +45,14 @@
     "trainTime": "0s",
     "submittedAt": "Official",
     "isBaseline": true
+  },
+  {
+    "rank": 6,
+    "name": "gcn_plus",
+    "macroF1": 0.08386020457375087,
+    "accuracy": 0.1,
+    "params": "N/A",
+    "trainTime": "N/A",
+    "submittedAt": "2026-01-12T09:31:09.855215"
   }
 ]
