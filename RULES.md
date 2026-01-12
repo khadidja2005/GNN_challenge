@@ -71,6 +71,7 @@ Build a Graph Neural Network that achieves the highest Macro F1-score on the hid
 - Include all source files and a `train.py` script
 - Must include requirements/dependencies list
 - README with instructions to reproduce
+- **Docker support recommended**: Include Dockerfile for reproducibility
 
 #### 4.3 Reproducibility
 - Set random seed (we recommend 42)
@@ -148,6 +149,13 @@ macro_f1 = f1_score(ground_truth, predictions, average='macro')
 
 # Accuracy (secondary metric)
 accuracy = accuracy_score(ground_truth, predictions)
+```
+
+### Running Evaluation with Docker
+
+```bash
+# Evaluate your predictions
+docker-compose run gnn python scripts/evaluate.py --predictions submissions/your_predictions.csv
 ```
 
 ---
