@@ -17,6 +17,78 @@
 
 Welcome to **ENZYMES-Hard**, a challenging Graph Neural Network competition designed to push your GNN skills to the limit! Your goal is to classify protein structures into their enzyme functional classes under realistic, difficult conditions.
 
+### 🩺 Why this matters (biomed/health)
+- Enzyme function prediction supports drug discovery by highlighting targets and off-target risks.
+- Better generalization under missing data mirrors real-world biomolecular assays and noisy lab pipelines.
+- Robust GNNs on protein graphs can accelerate annotation of novel enzymes in metagenomics and synthetic biology.
+
+### 🎯 The Task
+
+Classify protein tertiary structures (represented as graphs) into one of **6 EC top-level enzyme classes**:
+
+| Class | Description |
+|-------|-------------|
+| 1 | Oxidoreductases |
+| 2 | Transferases |
+| 3 | Hydrolases |
+| 4 | Lyases |
+| 5 | Isomerases |
+| 6 | Ligases |
+
+### 🔥 What Makes This Hard?
+
+This isn't your typical ENZYMES benchmark. We've added several real-world challenges:
+
+| Challenge | Description |
+|-----------|-------------|
+| 📉 **Limited Training Data** | Only 240 training graphs (40 per class) - learn from less! |
+| ⚖️ **Imbalanced Validation** | Validation set has imbalanced classes (45-40-35-25-20-15) |
+| ❓ **Missing Features** | 10-15% of node features are missing (NaN values) |
+| 🔗 **Edge Dropout** | 10% of edges hidden in test graphs |
+| 🏋️ **Model Constraints** | Maximum 100K parameters, train in <5 min on CPU |
+
+---
+
+## 📊 Dataset Statistics
+
+| Split | Graphs | Class Distribution | Notes |
+|-------|--------|-------------------|-------|
+| Validation | 180 | Imbalanced (45-40-35-25-20-15) | Missing features |
+| Test | 180 | Imbalanced (15-20-25-35-40-45) | Missing features + Edge dropout |
+ - Web app lands on the leaderboard by default; navbar brand also points there.
+ - Submit page now guides you to open a Pull Request (no file uploads in the UI).
+ - Static web build exports via `next export` and deploys to GitHub Pages through Actions.
+ - Added ready-to-use GAT/GCN/GraphSAGE submission scripts under `submissions/`.
+# 🧬 ENZYMES-Hard: Few-Shot Protein Function Classification
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Task-Graph%20Classification-blue" alt="Task">
+  <img src="https://img.shields.io/badge/Dataset-ENZYMES-green" alt="Dataset">
+  <img src="https://img.shields.io/badge/Difficulty-Hard-red" alt="Difficulty">
+  <img src="https://img.shields.io/badge/Framework-PyTorch%20Geometric-orange" alt="Framework">
+</p>
+
+<p align="center">
+  <b>An Educational GNN Challenge for Robust Protein Function Prediction</b>
+</p>
+
+---
+
+## ✨ What's New
+- Web app lands on the leaderboard by default; navbar brand also points there.
+- Submit page now guides you to open a Pull Request (no file uploads in the UI).
+- Static web build exports via `next export` and deploys to GitHub Pages through Actions.
+- Added ready-to-use GAT/GCN/GraphSAGE submission scripts under `submissions/`.
+
+## 📋 Challenge Overview
+
+Welcome to **ENZYMES-Hard**, a challenging Graph Neural Network competition designed to push your GNN skills to the limit! Your goal is to classify protein structures into their enzyme functional classes under realistic, difficult conditions.
+
+### 🩺 Why this matters (biomed/health)
+- Enzyme function prediction supports drug discovery by highlighting targets and off-target risks.
+- Better generalization under missing data mirrors real-world biomolecular assays and noisy lab pipelines.
+- Robust GNNs on protein graphs can accelerate annotation of novel enzymes in metagenomics and synthetic biology.
+
 ### 🎯 The Task
 
 Classify protein tertiary structures (represented as graphs) into one of **6 EC top-level enzyme classes**:
@@ -57,6 +129,11 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 - **Node features**: 18 continuous attributes (chemical/structural properties)
 - **Node labels**: 3 categorical labels (amino acid types)
 - **Edges**: Represent spatial proximity between amino acids
+
+### 🌐 Web App Quick Notes
+- Landing page redirects to the leaderboard; nav links: Leaderboard, Docs, Submit.
+- Submit tab summarizes the PR-based submission flow (see "How to Submit").
+- Production build: `npm run build && npm run export` (outputs to `out/` for static hosting).
 
 ---
 
@@ -144,6 +221,10 @@ cd web
 npm install
 npm run dev
 # Access at http://localhost:3000
+
+# Production build (static export)
+npm run build
+npm run export
 ```
 
 ---
@@ -175,14 +256,19 @@ GNN_challenge/
 │   └── getting_started.ipynb    # Starter notebook
 ├── submissions/
 │   ├── template.py              # Submission template
-│   └── example_submission.csv   # Example submission format
+│   ├── example_submission.csv   # Example submission format
+│   ├── gat_submission.py        # Example GAT solution
+│   ├── gcn_submission.py        # Example GCN solution
+│   ├── graphsage_submission.py  # Example GraphSAGE solution
+│   └── */                       # Place your team folder + predictions here
 ├── web/                         # Next.js Web UI
 │   ├── Dockerfile               # Production web build
 │   ├── Dockerfile.dev           # Development build
 │   └── src/                     # React components
 └── .github/
     └── workflows/
-        └── evaluate.yml         # Automated evaluation
+        ├── evaluate.yml         # Automated evaluation
+        └── deploy.yml           # Static web deploy to GitHub Pages
 ```
 
 ---
@@ -205,9 +291,10 @@ graph_id,prediction
 ### How to Submit
 
 1. Fork this repository
-2. Create your solution in `submissions/your_name/`
-3. Include your model code and `predictions.csv`
-4. Open a Pull Request
+2. Create your solution in `submissions/your_name/` using `submissions/template.py` or the GAT/GCN/GraphSAGE examples as a starting point
+3. Generate `predictions.csv` (match the format above) and include any helper code needed to reproduce it
+4. Open a Pull Request — the Submit page in the web app links to these steps
+5. (Optional) Add a short `model_info.json` describing hyperparameters and training notes
 
 ---
 
