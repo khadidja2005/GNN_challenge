@@ -99,12 +99,10 @@ print('✅ Submission format valid')
 PY
 
       - name: Evaluate on validation split
-        env:
-          GROUND_TRUTH: ${{ github.event.inputs.ground_truth || 'val' }}
         run: |
           python scripts/evaluate.py \
             --predictions "${{ steps.find_predictions.outputs.predictions_file }}" \
-            --ground_truth "${GROUND_TRUTH}" \
+            --ground_truth "${{ github.event.inputs.ground_truth != '' && github.event.inputs.ground_truth || 'val' }}" \
             --detailed
 
       - name: Collect metrics
