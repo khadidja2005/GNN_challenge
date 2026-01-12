@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 import { Dna, BookOpen, Upload, Trophy, Github } from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "Home", icon: Dna },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/docs", label: "Documentation", icon: BookOpen },
   { href: "/submit", label: "Submit", icon: Upload },
-  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
 export default function Navbar() {
@@ -18,7 +17,7 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#2a2a4a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/leaderboard" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center">
               <Dna className="w-6 h-6 text-white" />
             </div>
