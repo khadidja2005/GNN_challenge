@@ -12,6 +12,7 @@ Usage:
 import os
 import sys
 import json
+import base64
 import argparse
 import numpy as np
 import pandas as pd
@@ -76,15 +77,32 @@ def load_ground_truth(data_dir: str, split: str) -> Dict[int, int]:
     data_dir = Path(data_dir)
     
     if split == 'test':
-        # Load from hidden ground truth file
-        gt_file = data_dir / '.ground_truth' / 'test_labels.json'
-        if not gt_file.exists():
-            raise FileNotFoundError(
-                f"Ground truth file not found: {gt_file}\n"
-                "This file is only available to challenge organizers."
-            )
-        with open(gt_file, 'r') as f:
-            labels = json.load(f)
+        # Prefer labels supplied via secret (Base64 or raw JSON)
+        secret_b64 = os.environ.get('TEST_LABELS_B64', '').strip()
+        secret_json = os.environ.get('TEST_LABELS_JSON', '').strip()
+        labels = None
+
+        if secret_b64:
+            try:
+                decoded = base64.b64decode(secret_b64)
+                labels = json.loads(decoded)
+            except Exception as e:
+                raise ValueError(f"Failed to decode TEST_LABELS_B64: {e}") from e
+        elif secret_json:
+            try:
+                labels = json.loads(secret_json)
+            except Exception as e:
+                raise ValueError(f"Failed to parse TEST_LABELS_JSON: {e}") from e
+        else:
+            # Fallback: file only present in CI/private runs
+            gt_file = data_dir / '.ground_truth' / 'test_labels.json'
+            if not gt_file.exists():
+                raise FileNotFoundError(
+                    f"Ground truth file not found: {gt_file}\n"
+                    "Test labels are hidden; use the validation set locally."
+                )
+            with open(gt_file, 'r') as f:
+                labels = json.load(f)
         # Convert string keys to int
         return {int(k): int(v) for k, v in labels.items()}
     

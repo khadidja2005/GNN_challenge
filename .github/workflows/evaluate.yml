@@ -68,6 +68,9 @@ jobs:
           python scripts/validate_submission.py --predictions "$pred_file"
 
       - name: Evaluate on validation split
+        env:
+          TEST_LABELS_B64: ${{ secrets.TEST_LABELS_B64 }}
+          TEST_LABELS_JSON: ${{ secrets.TEST_LABELS_JSON }}
         run: |
           GT="${{ github.event.inputs.ground_truth }}"
           if [ -z "$GT" ]; then GT="val"; fi

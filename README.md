@@ -65,6 +65,20 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 | Validation | 180 | Imbalanced (45-40-35-25-20-15) | Missing features |
 | Test | 180 | Imbalanced (15-20-25-35-40-45) | Missing features + Edge dropout |
 
+### 👀 Sample Graph Visualizations (One per Class)
+
+| Class 1 | Class 2 | Class 3 |
+|---------|---------|---------|
+| ![Class 1](assets/sample_class_1.png) | ![Class 2](assets/sample_class_2.png) | ![Class 3](assets/sample_class_3.png) |
+
+| Class 4 | Class 5 | Class 6 |
+|---------|---------|---------|
+| ![Class 4](assets/sample_class_4.png) | ![Class 5](assets/sample_class_5.png) | ![Class 6](assets/sample_class_6.png) |
+
+- Nodes: colored by feature 0; titles show the enzyme class label.
+- Edges: undirected spring layout for readability.
+- Extracted from `data/challenge/train.pt`; each panel is one real graph example.
+
 ### Graph Properties
 - **Nodes per graph**: 2-126 (avg: ~32)
 - **Node features**: 18 continuous attributes (chemical/structural properties)
@@ -263,6 +277,15 @@ docker-compose run gnn python scripts/evaluate.py --predictions submissions/your
 # Or locally
 python scripts/evaluate.py --predictions submissions/your_predictions.csv
 ```
+
+### 🔒 Hidden Test Labels
+
+- Test labels are **not stored in the repo**. Run local checks with `--ground_truth val` only.
+- CI can score the hidden test split when a maintainer sets one of these repository secrets:
+  - `TEST_LABELS_B64`: Base64 of `data/challenge/.ground_truth/test_labels.json`
+  - `TEST_LABELS_JSON`: Raw JSON string of the same file
+- To create the Base64 secret locally: `base64 -w0 data/challenge/.ground_truth/test_labels.json`
+- The evaluation workflow injects these secrets and never exposes the file to participants.
 
 ---
 
