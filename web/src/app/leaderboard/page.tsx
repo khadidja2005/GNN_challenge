@@ -149,7 +149,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 grid md:grid-cols-2 gap-4">
+        <div className="mt-8 grid md:grid-cols-3 gap-4">
           <div className="p-4 bg-gray-900/30 border border-gray-800 rounded-xl">
             <h4 className="font-semibold text-gray-200 mb-2">📊 Scoring</h4>
             <p className="text-sm text-gray-500">
@@ -160,8 +160,15 @@ export default function LeaderboardPage() {
           <div className="p-4 bg-gray-900/30 border border-gray-800 rounded-xl">
             <h4 className="font-semibold text-gray-200 mb-2">⏱️ Constraints</h4>
             <p className="text-sm text-gray-500">
-              Models must have ≤100K parameters and train in under 5 minutes on CPU. 
-              Submissions violating these rules are disqualified.
+              Models must have ≤100K parameters and train in under 3 hours on CPU. 
+              Only one submission per participant is allowed.
+            </p>
+          </div>
+          <div className="p-4 bg-gray-900/30 border border-gray-800 rounded-xl">
+            <h4 className="font-semibold text-gray-200 mb-2">🔒 Privacy</h4>
+            <p className="text-sm text-gray-500">
+              Submissions are private. Only final scores and ranks are shown here.
+              Tied scores share the same rank (Kaggle-style).
             </p>
           </div>
         </div>

@@ -26,6 +26,11 @@ def main():
 
     entries = json.loads(leaderboard_path.read_text())
 
+    # Check for duplicate submission (one submission per participant)
+    existing_names = [e.get("name") for e in entries if not e.get("isBaseline")]
+    if args.team_name in existing_names and args.is_baseline.lower() != "true":
+        raise SystemExit(f"❌ Submission rejected: '{args.team_name}' has already submitted. Only one submission per participant is allowed.")
+
     submitted_at = args.submitted_at.strip() or datetime.utcnow().isoformat()
     new_entry = {
         "rank": 0,
@@ -39,13 +44,33 @@ def main():
     if args.is_baseline.lower() == "true":
         new_entry["isBaseline"] = True
 
-    filtered = [e for e in entries if e.get("name") != new_entry["name"]]
-    filtered.append(new_entry)
-    filtered.sort(key=lambda e: (e.get("macroF1", 0), e.get("accuracy", 0)), reverse=True)
-    for idx, entry in enumerate(filtered, start=1):
-        entry["rank"] = idx
+    # Add new entry (no replacement for non-baselines due to one-submission policy)
+    if args.is_baseline.lower() == "true":
+        # Baselines can be updated
+        entries = [e for e in entries if e.get("name") != new_entry["name"]]
+    entries.append(new_entry)
 
-    leaderboard_path.write_text(json.dumps(filtered, indent=2))
+    # Sort by macroF1 (desc), then accuracy (desc) for display order
+    entries.sort(key=lambda e: (e.get("macroF1", 0), e.get("accuracy", 0)), reverse=True)
+
+    # Kaggle-style ranking: tied scores share the same rank
+    current_rank = 1
+    for i, entry in enumerate(entries):
+        if i == 0:
+            entry["rank"] = current_rank
+        else:
+            prev = entries[i - 1]
+            # Compare macroF1 rounded to avoid float precision issues
+            if round(entry.get("macroF1", 0), 6) == round(prev.get("macroF1", 0), 6):
+                # Tie: same rank as previous
+                entry["rank"] = prev["rank"]
+            else:
+                # Not a tie: rank = position + 1
+                entry["rank"] = i + 1
+            current_rank = entry["rank"]
+
+    leaderboard_path.write_text(json.dumps(entries, indent=2))
+    print(f"✅ Leaderboard updated: {args.team_name} added at rank {new_entry['rank']}")
 
 if __name__ == "__main__":
     main()

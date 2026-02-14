@@ -53,7 +53,7 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 | ⚖️ **Imbalanced Validation** | Validation set has imbalanced classes (45-40-35-25-20-15) |
 | ❓ **Missing Features** | 10-15% of node features are missing (NaN values) |
 | 🔗 **Edge Dropout** | 10% of edges hidden in test graphs |
-| 🏋️ **Model Constraints** | Maximum 100K parameters, train in <5 min on CPU |
+| 🏋️ **Model Constraints** | Maximum 100K parameters, train in <3h on CPU |
 
 ---
 
@@ -84,6 +84,29 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 - **Node features**: 18 continuous attributes (chemical/structural properties)
 - **Node labels**: 3 categorical labels (amino acid types)
 - **Edges**: Represent spatial proximity between amino acids
+
+### 📐 Graph Data Specification (A, X)
+
+Each graph is provided as a PyTorch Geometric `Data` object with:
+
+| Component | Attribute | Description |
+|-----------|-----------|-------------|
+| **Adjacency (A)** | `data.edge_index` | Edge list in COO format `[2, num_edges]` — defines graph connectivity |
+| **Node Features (X)** | `data.x` | Feature matrix `[num_nodes, 18]` — continuous chemical/structural attributes |
+| **Label (y)** | `data.y` | Graph-level class label (1-6) |
+
+```python
+# Example: loading and inspecting a graph
+import torch
+from torch_geometric.data import Data
+
+data_list = torch.load('data/challenge/train.pt', weights_only=False)
+graph = data_list[0]
+
+print(f"Adjacency (edge_index): {graph.edge_index.shape}")  # [2, num_edges]
+print(f"Node features (x): {graph.x.shape}")                # [num_nodes, 18]
+print(f"Label (y): {graph.y.item()}")                       # 1-6
+```
 
 ### 🌐 Web App Quick Notes
 - Landing page redirects to the leaderboard; nav links: Leaderboard, Docs, Submit.
@@ -244,13 +267,26 @@ graph_id,prediction
 - `graph_id`: Index of the test graph (0-179)
 - `prediction`: Predicted class (1-6)
 
-### How to Submit
+### How to Submit (Private Submission)
 
-1. Fork this repository
-2. Create your solution in `submissions/your_name/` using `submissions/template.py` or the GAT/GCN/GraphSAGE examples as a starting point
-3. Generate `predictions.csv` (match the format above) and include any helper code needed to reproduce it
-4. Open a Pull Request — the Submit page in the web app links to these steps
-5. (Optional) Add a short `model_info.json` describing hyperparameters and training notes
+⚠️ **Submissions are PRIVATE** — do NOT open a public PR with your code!
+
+1. Prepare your submission folder with:
+   - `predictions.csv` (180 rows matching the format above)
+   - Your training code (reproducible with seed)
+   - `README.md` describing your model, params (≤100K), training time (≤3h)
+   - `requirements.txt` or environment file
+
+2. Zip your folder: `submission_yourname.zip`
+
+3. Submit privately via ONE of:
+   - **Email**: khadidja.benkermiche@ensia.edu.dz
+   - **GitHub DM**: [@khadidja2005](https://github.com/khadidja2005)
+   - **Private repo**: Invite the organizer as collaborator
+
+4. The organizer will evaluate and add your score to the public leaderboard
+
+**Only your team name, score, and rank will be public.** Your code stays private.
 
 ---
 
@@ -303,10 +339,12 @@ python scripts/evaluate.py --predictions submissions/your_predictions.csv
 ## 📜 Rules Summary
 
 1. **Parameter Limit**: Maximum 100,000 trainable parameters
-2. **Training Time**: Must complete in <5 minutes on CPU (Intel i5 or equivalent)
-3. **No External Data**: Only use the provided training data
-4. **No Pre-trained Models**: Train from scratch
-5. **Reproducibility**: Set random seed and provide complete code
+2. **Training Time**: Must complete in <3 hours on CPU (Intel i5 or equivalent)
+3. **One Submission**: Only one submission per participant — choose wisely!
+4. **No External Data**: Only use the provided training data
+5. **No Pre-trained Models**: Train from scratch
+6. **Reproducibility**: Set random seed and provide complete code
+7. **Privacy**: Submissions are private; only final scores appear on leaderboard
 
 See [RULES.md](RULES.md) for complete rules.
 
