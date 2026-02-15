@@ -1,4 +1,4 @@
-# 🧬 ENZYMES-Hard: Few-Shot Protein Function Classification
+# ENZYMES-Hard: Few-Shot Protein Function Classification
 
 <p align="center">
   <img src="https://img.shields.io/badge/Task-Graph%20Classification-blue" alt="Task">
@@ -13,26 +13,112 @@
 
 ---
 
-## ✨ What's New
-- Web app lands on the leaderboard by default; navbar brand also points there.
-- Submit page now guides you to open a Pull Request (no file uploads in the UI).
-- Static web build exports via `next export` and deploys to GitHub Pages through Actions.
-- Added ready-to-use GAT/GCN/GraphSAGE submission scripts under `submissions/`.
-- GitHub Actions: PR validation via `evaluate.yml` and `update-leaderboard.yml` dispatcher to publish scores.
-- GitHub Actions: PR validation via `evaluate.yml` and a `update-leaderboard.yml` dispatcher to publish scores to the site.
+## Quick Start for Participants
 
-## 📋 Challenge Overview
+**Want to participate? Follow these steps:**
 
-Welcome to **ENZYMES-Hard**, a challenging Graph Neural Network competition designed to push your GNN skills to the limit! Your goal is to classify protein structures into their enzyme functional classes under realistic, difficult conditions.
+### Step 1: Set Up Your Environment
 
-### 🩺 Why this matters (biomed/health)
-- Enzyme function prediction supports drug discovery by highlighting targets and off-target risks.
-- Better generalization under missing data mirrors real-world biomolecular assays and noisy lab pipelines.
-- Robust GNNs on protein graphs can accelerate annotation of novel enzymes in metagenomics and synthetic biology.
+```bash
+# Clone the repository
+git clone https://github.com/khadidja2005/GNN_challenge.git
+cd GNN_challenge
 
-### 🎯 The Task
+# Install dependencies
+pip install -r requirements.txt
 
-Classify protein tertiary structures (represented as graphs) into one of **6 EC top-level enzyme classes**:
+# Prepare the challenge data
+python scripts/prepare_data.py
+```
+
+### Step 2: Build Your Model
+
+- Train a GNN model on the 240 training graphs in `data/challenge/train.pt`
+- Use the 180 validation graphs in `data/challenge/val.pt` to tune hyperparameters
+- Your model must have **≤100K parameters** and train in **≤3 hours on CPU**
+
+```python
+# Load the data
+import torch
+train_graphs = torch.load('data/challenge/train.pt', weights_only=False)
+val_graphs = torch.load('data/challenge/val.pt', weights_only=False)
+test_graphs = torch.load('data/challenge/test.pt', weights_only=False)
+```
+
+### Step 3: Generate Predictions
+
+Run your trained model on the 180 test graphs and save predictions as CSV:
+
+```csv
+graph_id,prediction
+0,3
+1,1
+2,5
+...
+179,2
+```
+
+- `graph_id`: 0 to 179 (test graph index)
+- `prediction`: 1 to 6 (enzyme class)
+
+Save this file as `predictions.csv`.
+
+### Step 4: Encrypt Your Submission
+
+Your predictions are encrypted before submission so other participants cannot see them.
+
+```bash
+# Install encryption library (if not already installed)
+pip install cryptography
+
+# Encrypt your predictions
+python encryption/encrypt.py predictions.csv encryption/public_key.pem submissions/yourteam.enc
+```
+
+Replace `yourteam` with your team name (no spaces, e.g., `alpha_team`).
+
+### Step 5: Submit via Pull Request
+
+1. **Fork** this repository (if you're not a collaborator)
+2. **Add** your encrypted file: `submissions/yourteam.enc`
+3. **Commit** and push:
+   ```bash
+   git add submissions/yourteam.enc
+   git commit -m "[Submission] YourTeamName"
+   git push origin main
+   ```
+4. **Open a Pull Request** with title: `[Submission] YourTeamName`
+5. **Wait** for CI to evaluate (2-5 minutes)
+
+The CI system will:
+- Decrypt your submission (only CI has the private key)
+- Validate the CSV format
+- Evaluate against the hidden test labels
+- Comment your score on the PR
+- Update the public leaderboard
+
+**Important:** You get only ONE submission. Make sure your model is ready!
+
+---
+
+## What's New
+- Encrypted submission system for privacy
+- Automated CI evaluation and leaderboard updates
+- Ready-to-use GAT/GCN/GraphSAGE submission scripts under `submissions/`
+- Web leaderboard at https://khadidja2005.github.io/GNN_challenge/
+
+## Challenge Overview
+
+**ENZYMES-Hard** is a graph classification competition. Your goal is to classify protein structures (represented as graphs) into one of 6 enzyme functional classes.
+
+### Why This Matters
+- Enzyme function prediction supports drug discovery
+- Better generalization under missing data mirrors real-world lab conditions
+- Robust GNNs on protein graphs accelerate annotation of novel enzymes
+
+### The Task
+
+Classify protein graphs into 6 EC top-level enzyme classes:
 
 | Class | Description |
 |-------|-------------|
@@ -43,21 +129,19 @@ Classify protein tertiary structures (represented as graphs) into one of **6 EC 
 | 5 | Isomerases |
 | 6 | Ligases |
 
-### 🔥 What Makes This Hard?
-
-This isn't your typical ENZYMES benchmark. We've added several real-world challenges:
+### What Makes This Hard
 
 | Challenge | Description |
 |-----------|-------------|
-| 📉 **Limited Training Data** | Only 240 training graphs (40 per class) - learn from less! |
-| ⚖️ **Imbalanced Validation** | Validation set has imbalanced classes (45-40-35-25-20-15) |
-| ❓ **Missing Features** | 10-15% of node features are missing (NaN values) |
-| 🔗 **Edge Dropout** | 10% of edges hidden in test graphs |
-| 🏋️ **Model Constraints** | Maximum 100K parameters, train in <3h on CPU |
+| Limited Training Data | Only 240 training graphs (40 per class) |
+| Imbalanced Validation | Validation set has imbalanced classes |
+| Missing Features | 10-15% of node features are NaN |
+| Edge Dropout | 10% of edges hidden in test graphs |
+| Model Constraints | Max 100K parameters, train in <3h on CPU |
 
 ---
 
-## 📊 Dataset Statistics
+## Dataset Statistics
 
 | Split | Graphs | Class Distribution | Notes |
 |-------|--------|-------------------|-------|
@@ -65,7 +149,7 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 | Validation | 180 | Imbalanced (45-40-35-25-20-15) | Missing features |
 | Test | 180 | Imbalanced (15-20-25-35-40-45) | Missing features + Edge dropout |
 
-### 👀 Sample Graph Visualizations (One per Class)
+### Sample Graph Visualizations (One per Class)
 
 | Class 1 | Class 2 | Class 3 |
 |---------|---------|---------|
@@ -75,28 +159,23 @@ This isn't your typical ENZYMES benchmark. We've added several real-world challe
 |---------|---------|---------|
 | ![Class 4](assets/sample_class_4.png) | ![Class 5](assets/sample_class_5.png) | ![Class 6](assets/sample_class_6.png) |
 
-- Nodes: colored by feature 0; titles show the enzyme class label.
-- Edges: undirected spring layout for readability.
-- Extracted from `data/challenge/train.pt`; each panel is one real graph example.
-
 ### Graph Properties
 - **Nodes per graph**: 2-126 (avg: ~32)
 - **Node features**: 18 continuous attributes (chemical/structural properties)
 - **Node labels**: 3 categorical labels (amino acid types)
 - **Edges**: Represent spatial proximity between amino acids
 
-### 📐 Graph Data Specification (A, X)
+### Graph Data Specification
 
-Each graph is provided as a PyTorch Geometric `Data` object with:
+Each graph is a PyTorch Geometric `Data` object:
 
 | Component | Attribute | Description |
 |-----------|-----------|-------------|
-| **Adjacency (A)** | `data.edge_index` | Edge list in COO format `[2, num_edges]` — defines graph connectivity |
-| **Node Features (X)** | `data.x` | Feature matrix `[num_nodes, 18]` — continuous chemical/structural attributes |
-| **Label (y)** | `data.y` | Graph-level class label (1-6) |
+| Adjacency (A) | `data.edge_index` | Edge list in COO format `[2, num_edges]` |
+| Node Features (X) | `data.x` | Feature matrix `[num_nodes, 18]` |
+| Label (y) | `data.y` | Graph-level class label (1-6) |
 
 ```python
-# Example: loading and inspecting a graph
 import torch
 from torch_geometric.data import Data
 
@@ -108,153 +187,68 @@ print(f"Node features (x): {graph.x.shape}")                # [num_nodes, 18]
 print(f"Label (y): {graph.y.item()}")                       # 1-6
 ```
 
-### 🌐 Web App Quick Notes
-- Landing page redirects to the leaderboard; nav links: Leaderboard, Docs, Submit.
-- Submit tab summarizes the PR-based submission flow (see "How to Submit").
-- Production build: `npm run build` (outputs static files to `out/`).
-- GitHub Pages: https://khadidja2005.github.io/GNN_challenge/
-
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Option 1: Using Docker (Recommended)
 
-#### Prerequisites
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-#### Quick Start
-
 ```bash
-# Clone the repository
+# Clone and start
 git clone https://github.com/khadidja2005/GNN_challenge.git
 cd GNN_challenge
-
-# Start all services (Web UI + Python environment)
 docker-compose up --build
 
-# Access the Web UI at http://localhost:3000
-```
-
-#### Run GNN Scripts with Docker
-
-```bash
-# Prepare challenge data
+# Run scripts
 docker-compose run gnn python scripts/prepare_data.py
-
-# Train the baseline model
 docker-compose run gnn python baselines/simple_gnn.py
-
-# Evaluate your predictions
-docker-compose run gnn python scripts/evaluate.py --predictions submissions/predictions.csv
-
-# Interactive Python shell
-docker-compose run gnn bash
-```
-
-#### Development Mode (with hot reload)
-
-```bash
-docker-compose --profile dev up web-dev
-# Access at http://localhost:3001
 ```
 
 ### Option 2: Local Installation
 
-#### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/khadidja2005/GNN_challenge.git
 cd GNN_challenge
-```
-
-#### 2. Install Dependencies
-
-```bash
 pip install -r requirements.txt
-```
-
-#### 3. Prepare the Challenge Data
-
-```bash
 python scripts/prepare_data.py
-```
-
-#### 4. Explore the Starter Notebook
-
-```bash
-jupyter notebook notebooks/getting_started.ipynb
-```
-
-#### 5. Run the Baseline
-
-```bash
 python baselines/simple_gnn.py
-```
-
-#### 6. Run the Web UI (Optional)
-
-```bash
-cd web
-npm install
-npm run dev
-# Access at http://localhost:3000
-
-# Production build (static export)
-npm run build
-npm run export
 ```
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 GNN_challenge/
 ├── README.md                    # This file
 ├── RULES.md                     # Detailed challenge rules
-├── DOCKER.md                    # Docker deployment guide
 ├── requirements.txt             # Python dependencies
-├── docker-compose.yml           # Docker orchestration
-├── Dockerfile.python            # Python GNN environment
-├── Dataset/
-│   └── ENZYMES/                 # Original TUDataset files
-├── data/
-│   └── challenge/               # Processed challenge splits (after running prepare_data.py)
-│       ├── train.pt             # Training graphs
-│       ├── val.pt               # Validation graphs
-│       ├── test.pt              # Test graphs (labels hidden)
-│       └── metadata.json        # Dataset metadata
-├── scripts/
-│   ├── prepare_data.py          # Data preparation with difficulty modifications
-│   └── evaluate.py              # Evaluation script
+├── data/challenge/              # Challenge data splits
+│   ├── train.pt                 # 240 training graphs
+│   ├── val.pt                   # 180 validation graphs
+│   └── test.pt                  # 180 test graphs (labels hidden)
+├── encryption/                  # Submission encryption
+│   ├── encrypt.py               # Encrypt predictions (for participants)
+│   ├── decrypt.py               # Decrypt submissions (CI only)
+│   └── public_key.pem           # Public key for encryption
 ├── baselines/
 │   └── simple_gnn.py            # Baseline GNN model (<100K params)
 ├── notebooks/
 │   └── getting_started.ipynb    # Starter notebook
-├── submissions/
+├── submissions/                 # Submit your .enc file here
 │   ├── template.py              # Submission template
-│   ├── example_submission.csv   # Example submission format
-│   ├── gat_submission.py        # Example GAT solution
-│   ├── gcn_submission.py        # Example GCN solution
-│   ├── graphsage_submission.py  # Example GraphSAGE solution
-│   └── */                       # Place your team folder + predictions here
-├── web/                         # Next.js Web UI
-│   ├── Dockerfile               # Production web build
-│   ├── Dockerfile.dev           # Development build
-│   └── src/                     # React components
-└── .github/
-    └── workflows/
-        ├── evaluate.yml         # Automated evaluation
-        └── deploy.yml           # Static web deploy to GitHub Pages
+│   └── example_submission.csv   # Example format
+└── scripts/
+    ├── prepare_data.py          # Data preparation
+    ├── evaluate.py              # Evaluation script
+    └── validate_submission.py   # Validate CSV format
 ```
 
 ---
 
-## 📝 Submission Format
+## Submission Format
 
-Your submission should be a CSV file with the following format:
+Your `predictions.csv` must have exactly 180 rows:
 
 ```csv
 graph_id,prediction
@@ -262,149 +256,75 @@ graph_id,prediction
 1,1
 2,5
 ...
+179,2
 ```
 
-- `graph_id`: Index of the test graph (0-179)
+- `graph_id`: Test graph index (0-179)
 - `prediction`: Predicted class (1-6)
 
-### How to Submit (🔐 Encrypted Submission)
-
-Submissions are **encrypted** — your predictions are protected with RSA-4096 + AES-256. Only the CI system can decrypt and evaluate them.
-
-#### Step 1: Generate your predictions
-
-```csv
-graph_id,prediction
-0,3
-1,1
-2,5
-...
-```
-- 180 rows (one per test graph)
-- `prediction` values: 1-6
-
-#### Step 2: Install encryption dependencies
+### Validate Before Submitting
 
 ```bash
-pip install cryptography
+python scripts/validate_submission.py --predictions predictions.csv
 ```
-
-#### Step 3: Encrypt your submission
-
-```bash
-python encryption/encrypt.py predictions.csv encryption/public_key.pem submissions/yourteam.enc
-```
-Replace `yourteam` with your team name (no spaces).
-
-#### Step 4: Submit via Pull Request
-
-1. Fork the repository (if not a collaborator)
-2. Add only your encrypted file: `submissions/yourteam.enc`
-3. Open a PR with title: `[Submission] YourTeamName`
-4. CI automatically decrypts, validates, evaluates, and updates the leaderboard
-5. CI will comment on your PR with your score
-
-**Only your team name, score, and rank appear on the leaderboard.** Your predictions remain encrypted.
 
 ---
 
-## 🏆 Evaluation
+## Evaluation
 
 ### Primary Metric: Macro F1-Score
 
 $$\text{Macro F1} = \frac{1}{C} \sum_{c=1}^{C} F1_c$$
 
-where $F1_c = \frac{2 \cdot P_c \cdot R_c}{P_c + R_c}$
-
-This metric treats all classes equally, regardless of their frequency.
+This metric treats all classes equally, regardless of frequency.
 
 ### Secondary Metric: Accuracy
 
-$$\text{Accuracy} = \frac{\text{Correct Predictions}}{\text{Total Predictions}}$$
+Used for tiebreaking only.
 
-### Evaluate Your Predictions
+### Local Evaluation (Validation Set Only)
 
 ```bash
-# Using Docker (recommended)
-docker-compose run gnn python scripts/evaluate.py --predictions submissions/your_predictions.csv
-
-# Or locally
-python scripts/evaluate.py --predictions submissions/your_predictions.csv
+python scripts/evaluate.py --predictions predictions.csv --ground_truth val
 ```
 
-### 🔒 Hidden Test Labels
-
-- Test labels are **not stored in the repo**. Run local checks with `--ground_truth val` only.
-- CI can score the hidden test split when a maintainer sets one of these repository secrets:
-  - `TEST_LABELS_B64`: Base64 of `data/challenge/.ground_truth/test_labels.json`
-  - `TEST_LABELS_JSON`: Raw JSON string of the same file
-- To create the Base64 secret locally: `base64 -w0 data/challenge/.ground_truth/test_labels.json`
-- The evaluation workflow injects these secrets and never exposes the file to participants.
+Note: Test labels are hidden. You can only evaluate locally against the validation set.
 
 ---
 
-## 🎖️ Leaderboard
-
-| Rank | Team | Macro F1 | Accuracy | Parameters | Training Time |
-|------|------|----------|----------|------------|---------------|
-| 🥇 | - | - | - | - | - |
-| 🥇 | - | - | - | - | - |
-| 🥈 | - | - | - | - | - |
-| 🥉 | - | - | - | - | - |
-| 📊 | Baseline | ~0.35 | ~0.38 | 45K | ~2 min |
----
-
-## 📜 Rules Summary
+## Rules Summary
 
 1. **Parameter Limit**: Maximum 100,000 trainable parameters
-2. **Training Time**: Must complete in <3 hours on CPU (Intel i5 or equivalent)
-3. **One Submission**: Only one submission per participant — choose wisely!
+2. **Training Time**: Must complete in <3 hours on CPU
+3. **One Submission**: Only ONE submission per participant
 4. **No External Data**: Only use the provided training data
 5. **No Pre-trained Models**: Train from scratch
 6. **Reproducibility**: Set random seed and provide complete code
-7. **Privacy**: Submissions are private; only final scores appear on leaderboard
 
 See [RULES.md](RULES.md) for complete rules.
 
 ---
 
-## 💡 Tips & Hints
+## Tips
 
-<details>
-<summary><b>Dealing with Missing Features</b></summary>
-
-- Consider imputation strategies (mean, median, learned)
+**Dealing with Missing Features:**
+- Consider imputation (mean, median, learned)
 - Use masking to indicate missing values
 - Graph-based imputation using neighbor information
-</details>
 
-<details>
-<summary><b>Handling Limited Data</b></summary>
-
+**Handling Limited Data:**
 - Data augmentation (node dropout, feature noise)
 - Regularization (dropout, weight decay)
-- Simple architectures often work better with limited data
-</details>
+- Simple architectures often work better
 
-<details>
-<summary><b>Class Imbalance</b></summary>
-
+**Class Imbalance:**
 - Weighted loss functions
 - Focal loss
 - Oversampling minority classes
-</details>
-
-<details>
-<summary><b>Efficient Architectures</b></summary>
-
-- Reduce hidden dimensions
-- Use graph-level pooling early
-- Consider GIN, GraphSAGE, or GAT variants
-</details>
 
 ---
 
-## 📚 Resources
+## Resources
 
 - [PyTorch Geometric Documentation](https://pytorch-geometric.readthedocs.io/)
 - [TUDataset Paper](https://arxiv.org/abs/2007.08663)
@@ -413,19 +333,19 @@ See [RULES.md](RULES.md) for complete rules.
 
 ---
 
-## 📧 Contact
+## Contact
 
 - **Challenge Organizer**: [@khadidja2005](https://github.com/khadidja2005)
 - **Issues**: Open an issue for questions or bug reports
 
 ---
 
-## 📄 License
+## License
 
 This challenge uses the ENZYMES dataset from TUDataset. See [LICENSE](LICENSE) for details.
 
 ---
 
 <p align="center">
-  <b>Good luck! May your gradients flow smoothly! 🚀</b>
+  <b>Good luck!</b>
 </p>
