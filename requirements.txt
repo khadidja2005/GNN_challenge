@@ -18,6 +18,9 @@ jupyter>=1.0.0
 notebook>=7.0.0
 ipywidgets>=8.0.0
 
+# Encryption for submissions
+cryptography>=41.0.0
+
 # Development tools
 tqdm>=4.65.0
 pyyaml>=6.0

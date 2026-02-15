@@ -1,32 +1,32 @@
-name: Evaluate Submission
+name: Evaluate Encrypted Submission
 
 on:
   pull_request:
     paths:
-      - 'submissions/**'
-      - 'scripts/**'
+      - 'submissions/*.enc'
+  push:
+    paths:
+      - 'submissions/*.enc'
   workflow_dispatch:
     inputs:
-      submission_path:
-        description: 'Path to submission directory (e.g., submissions/your_team)'
+      submission_file:
+        description: 'Path to encrypted submission (e.g., submissions/team_name.enc)'
         required: true
-        default: 'submissions/example'
-      ground_truth:
-        description: 'Split to evaluate against'
-        required: false
-        default: 'val'
+        default: 'submissions/example.enc'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -36,91 +36,199 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pandas scikit-learn torch
+          pip install numpy pandas scikit-learn torch cryptography
           pip install torch-geometric -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
 
       - name: Prepare challenge data
         run: python scripts/prepare_data.py --seed 42
 
-      - name: Locate predictions file
-        id: find_predictions
-        shell: bash
+      - name: Find encrypted submission
+        id: find_submission
         run: |
-          SUBMISSION_PATH="${{ github.event.inputs.submission_path }}"
-          if [ -z "$SUBMISSION_PATH" ]; then
-            SUBMISSION_PATH=$(git ls-files 'submissions/*/predictions.csv' | head -1 | xargs dirname)
+          # Check if manual input provided
+          if [ -n "${{ github.event.inputs.submission_file }}" ]; then
+            ENC_FILE="${{ github.event.inputs.submission_file }}"
+          else
+            # Find new/changed .enc files in submissions/
+            ENC_FILE=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'submissions/*.enc' | head -1)
+            if [ -z "$ENC_FILE" ]; then
+              # Fallback: find any .enc file
+              ENC_FILE=$(find submissions -name "*.enc" -type f | head -1)
+            fi
           fi
-          if [ -z "$SUBMISSION_PATH" ]; then
-            echo "No submission path detected." >&2
+          
+          if [ -z "$ENC_FILE" ] || [ ! -f "$ENC_FILE" ]; then
+            echo "❌ No encrypted submission found"
             exit 1
           fi
-          PRED_FILE="$SUBMISSION_PATH/predictions.csv"
-          if [ ! -f "$PRED_FILE" ]; then
-            echo "predictions.csv not found at $PRED_FILE" >&2
-            exit 1
-          fi
-          echo "predictions_file=$PRED_FILE" >> "$GITHUB_OUTPUT"
-          echo "submission_path=$SUBMISSION_PATH" >> "$GITHUB_OUTPUT"
+          
+          # Extract team name from filename
+          TEAM_NAME=$(basename "$ENC_FILE" .enc)
+          
+          echo "enc_file=$ENC_FILE" >> "$GITHUB_OUTPUT"
+          echo "team_name=$TEAM_NAME" >> "$GITHUB_OUTPUT"
+          echo "📦 Found submission: $ENC_FILE (Team: $TEAM_NAME)"
+
+      - name: Write private key
+        run: |
+          echo "${{ secrets.RSA_PRIVATE_KEY }}" > /tmp/private_key.pem
+          chmod 600 /tmp/private_key.pem
+
+      - name: Decrypt submission
+        id: decrypt
+        run: |
+          DECRYPTED_CSV="/tmp/predictions_${{ steps.find_submission.outputs.team_name }}.csv"
+          python encryption/decrypt.py \
+            "${{ steps.find_submission.outputs.enc_file }}" \
+            /tmp/private_key.pem \
+            "$DECRYPTED_CSV"
+          echo "decrypted_file=$DECRYPTED_CSV" >> "$GITHUB_OUTPUT"
 
       - name: Validate submission format
         run: |
-          pred_file="${{ steps.find_predictions.outputs.predictions_file }}"
-          python scripts/validate_submission.py --predictions "$pred_file"
+          python scripts/validate_submission.py --predictions "${{ steps.decrypt.outputs.decrypted_file }}"
 
-      - name: Evaluate on validation split
+      - name: Evaluate on test set
+        id: evaluate
         env:
           TEST_LABELS_B64: ${{ secrets.TEST_LABELS_B64 }}
           TEST_LABELS_JSON: ${{ secrets.TEST_LABELS_JSON }}
         run: |
-          GT="${{ github.event.inputs.ground_truth }}"
-          if [ -z "$GT" ]; then GT="val"; fi
+          # Create temp results directory
+          mkdir -p /tmp/results
+          
           python scripts/evaluate.py \
-            --predictions "${{ steps.find_predictions.outputs.predictions_file }}" \
-            --ground_truth "$GT" \
+            --predictions "${{ steps.decrypt.outputs.decrypted_file }}" \
+            --ground_truth test \
             --detailed
+          
+          # Move results to temp (evaluate.py saves next to predictions)
+          mv "/tmp/evaluation_results.json" "/tmp/results/" 2>/dev/null || true
+          
+          # If results are next to decrypted file
+          RESULTS_DIR=$(dirname "${{ steps.decrypt.outputs.decrypted_file }}")
+          if [ -f "$RESULTS_DIR/evaluation_results.json" ]; then
+            cp "$RESULTS_DIR/evaluation_results.json" /tmp/results/
+          fi
 
       - name: Collect metrics
         id: metrics
         run: |
-          RESULTS_PATH="$(dirname "${{ steps.find_predictions.outputs.predictions_file }}")/evaluation_results.json"
-          echo "results_path=$RESULTS_PATH" >> "$GITHUB_OUTPUT"
-          echo "macro_f1=$(jq -r '.macro_f1' "$RESULTS_PATH")" >> "$GITHUB_OUTPUT"
-          echo "accuracy=$(jq -r '.accuracy' "$RESULTS_PATH")" >> "$GITHUB_OUTPUT"
-          echo "weighted_f1=$(jq -r '.weighted_f1' "$RESULTS_PATH")" >> "$GITHUB_OUTPUT"
+          # Find results file
+          RESULTS_FILE=$(find /tmp -name "evaluation_results.json" 2>/dev/null | head -1)
+          if [ -z "$RESULTS_FILE" ]; then
+            echo "❌ Results file not found"
+            exit 1
+          fi
+          
+          echo "macro_f1=$(jq -r '.macro_f1' "$RESULTS_FILE")" >> "$GITHUB_OUTPUT"
+          echo "accuracy=$(jq -r '.accuracy' "$RESULTS_FILE")" >> "$GITHUB_OUTPUT"
+          echo "weighted_f1=$(jq -r '.weighted_f1' "$RESULTS_FILE")" >> "$GITHUB_OUTPUT"
 
-      - name: Upload evaluation artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: evaluation-results
-          path: |
-            ${{ steps.metrics.outputs.results_path }}
-            ${{ steps.find_predictions.outputs.predictions_file }}
+      - name: Update leaderboard
+        run: |
+          TEAM="${{ steps.find_submission.outputs.team_name }}"
+          MACRO_F1="${{ steps.metrics.outputs.macro_f1 }}"
+          ACCURACY="${{ steps.metrics.outputs.accuracy }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          # Update leaderboard JSON
+          python << EOF
+          import json
+          from pathlib import Path
+          
+          leaderboard_path = Path("web/src/app/leaderboard/data.json")
+          entries = json.loads(leaderboard_path.read_text())
+          
+          # Check for duplicate submission
+          existing_names = [e.get("name") for e in entries if not e.get("isBaseline")]
+          if "$TEAM" in existing_names:
+              print(f"⚠️ Team '$TEAM' already submitted - skipping")
+              exit(0)
+          
+          new_entry = {
+              "rank": 0,
+              "name": "$TEAM",
+              "macroF1": float("$MACRO_F1"),
+              "accuracy": float("$ACCURACY"),
+              "params": "N/A",
+              "trainTime": "N/A",
+              "submittedAt": "$TIMESTAMP",
+          }
+          
+          entries.append(new_entry)
+          
+          # Sort by macroF1 desc
+          entries.sort(key=lambda e: (e.get("macroF1", 0), e.get("accuracy", 0)), reverse=True)
+          
+          # Kaggle-style ranking (ties share rank)
+          for i, entry in enumerate(entries):
+              if i == 0:
+                  entry["rank"] = 1
+              else:
+                  prev = entries[i - 1]
+                  if round(entry.get("macroF1", 0), 6) == round(prev.get("macroF1", 0), 6):
+                      entry["rank"] = prev["rank"]
+                  else:
+                      entry["rank"] = i + 1
+          
+          leaderboard_path.write_text(json.dumps(entries, indent=2))
+          print(f"✅ Leaderboard updated: {new_entry['name']} at rank {new_entry['rank']}")
+          EOF
 
-      - name: Comment results on PR
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f /tmp/private_key.pem
+          rm -f /tmp/predictions_*.csv
+
+      - name: Commit leaderboard update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/src/app/leaderboard/data.json
+          git diff --staged --quiet || git commit -m "🏆 Update leaderboard: ${{ steps.find_submission.outputs.team_name }} (F1: ${{ steps.metrics.outputs.macro_f1 }})"
+          git push
+
+      - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
-          script: >
+          script: |
             const macro = Number('${{ steps.metrics.outputs.macro_f1 }}').toFixed(4);
             const acc = Number('${{ steps.metrics.outputs.accuracy }}').toFixed(4);
-            const weighted = Number('${{ steps.metrics.outputs.weighted_f1 }}').toFixed(4);
-            const submissionPath = '${{ steps.find_predictions.outputs.submission_path }}';
+            const team = '${{ steps.find_submission.outputs.team_name }}';
+            
             const body = [
-              '## 📊 Validation Evaluation',
+              '## 🔐 Encrypted Submission Evaluated',
+              '',
+              `**Team:** ${team}`,
               '',
               '| Metric | Score |',
               '|--------|-------|',
               `| **Macro F1** | ${macro} |`,
               `| Accuracy | ${acc} |`,
-              `| Weighted F1 | ${weighted} |`,
               '',
-              `Submission path: ${submissionPath}`,
+              '✅ Your submission has been decrypted and evaluated.',
+              '📊 The leaderboard has been automatically updated.',
               '',
-              '_Results generated by CI on the validation split. Use the "Update Leaderboard" workflow after merging to publish to the site._',
+              '_Your code and predictions remain private. Only scores are public._',
             ].join('\n');
+            
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body,
             });
+
+      - name: Summary
+        run: |
+          echo "## 🏆 Evaluation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Team:** ${{ steps.find_submission.outputs.team_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Score |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Macro F1 | ${{ steps.metrics.outputs.macro_f1 }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Accuracy | ${{ steps.metrics.outputs.accuracy }} |" >> $GITHUB_STEP_SUMMARY

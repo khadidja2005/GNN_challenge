@@ -68,16 +68,33 @@ Build a Graph Neural Network that achieves the highest Macro F1-score on the hid
 - Choose your best model before submitting
 - Multiple submissions from the same participant will be rejected
 
-#### 4.2 Submission Privacy & Process
-- **Submissions are PRIVATE** — do NOT open a public PR with your code
-- Submit via **private channel**:
-  1. Email your submission to the organizer, OR
-  2. Use the private submission form (if available), OR  
-  3. DM the organizer on GitHub/Discord with a private repo link
+#### 4.2 Submission Privacy & Process (Encrypted Submissions)
+- **Submissions are ENCRYPTED** — only the CI system can decrypt and evaluate your predictions
+- Submit via **encrypted PR workflow**:
+  1. Generate your `predictions.csv` file (180 rows: graph_id, prediction)
+  2. Encrypt it using our public key (see below)
+  3. Open a PR adding only your `.enc` file to `submissions/`
+  4. CI automatically decrypts, evaluates, and updates leaderboard
 - Only your **final score and rank** appear on the public leaderboard
-- Submitted code/predictions are kept confidential
-- Participants cannot see each other's solutions
+- Your predictions remain confidential (encrypted at rest)
+- Participants cannot see each other's predictions
 - Solutions may be published **after** the competition ends (with permission)
+
+##### 🔐 How to Encrypt Your Submission
+
+```bash
+# Install cryptography package
+pip install cryptography
+
+# Encrypt your predictions
+python encryption/encrypt.py predictions.csv encryption/public_key.pem submissions/yourteam.enc
+```
+
+##### 📤 Submit via Pull Request
+1. Fork the repository (if not a collaborator)
+2. Add your encrypted file: `submissions/yourteam.enc`
+3. Open a PR with title: `[Submission] YourTeamName`
+4. CI will automatically evaluate and comment with your score
 
 #### 4.3 Prediction File
 - CSV format with columns: `graph_id`, `prediction`

@@ -267,26 +267,44 @@ graph_id,prediction
 - `graph_id`: Index of the test graph (0-179)
 - `prediction`: Predicted class (1-6)
 
-### How to Submit (Private Submission)
+### How to Submit (🔐 Encrypted Submission)
 
-⚠️ **Submissions are PRIVATE** — do NOT open a public PR with your code!
+Submissions are **encrypted** — your predictions are protected with RSA-4096 + AES-256. Only the CI system can decrypt and evaluate them.
 
-1. Prepare your submission folder with:
-   - `predictions.csv` (180 rows matching the format above)
-   - Your training code (reproducible with seed)
-   - `README.md` describing your model, params (≤100K), training time (≤3h)
-   - `requirements.txt` or environment file
+#### Step 1: Generate your predictions
 
-2. Zip your folder: `submission_yourname.zip`
+```csv
+graph_id,prediction
+0,3
+1,1
+2,5
+...
+```
+- 180 rows (one per test graph)
+- `prediction` values: 1-6
 
-3. Submit privately via ONE of:
-   - **Email**: khadidja.benkermiche@ensia.edu.dz
-   - **GitHub DM**: [@khadidja2005](https://github.com/khadidja2005)
-   - **Private repo**: Invite the organizer as collaborator
+#### Step 2: Install encryption dependencies
 
-4. The organizer will evaluate and add your score to the public leaderboard
+```bash
+pip install cryptography
+```
 
-**Only your team name, score, and rank will be public.** Your code stays private.
+#### Step 3: Encrypt your submission
+
+```bash
+python encryption/encrypt.py predictions.csv encryption/public_key.pem submissions/yourteam.enc
+```
+Replace `yourteam` with your team name (no spaces).
+
+#### Step 4: Submit via Pull Request
+
+1. Fork the repository (if not a collaborator)
+2. Add only your encrypted file: `submissions/yourteam.enc`
+3. Open a PR with title: `[Submission] YourTeamName`
+4. CI automatically decrypts, validates, evaluates, and updates the leaderboard
+5. CI will comment on your PR with your score
+
+**Only your team name, score, and rank appear on the leaderboard.** Your predictions remain encrypted.
 
 ---
 

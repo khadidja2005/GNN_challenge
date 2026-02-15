@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# PRIVATE KEYS - NEVER COMMIT!
+encryption/private_key.pem
+**/private_key.pem
+*.key
+
 # Distribution / packaging
 .Python
 build/
